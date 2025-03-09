@@ -7,7 +7,7 @@ const scene = new THREE.Scene();
 
 // Camera setup
 const camera = new THREE.PerspectiveCamera(
-  75,
+  30,
   window.innerWidth / window.innerHeight,
   0.1,
   1000
@@ -68,6 +68,32 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
+const spaceTexture = new THREE.TextureLoader().load('./space.jpg')
+scene.background = spaceTexture;
+
+// Avatar
+
+const rockeyTexture = new THREE.TextureLoader().load('./rockey.jpg')
+
+const rockey = new THREE.Mesh(
+  new THREE.BoxGeometry(5,5,5),
+  new THREE.MeshBasicMaterial({map:rockeyTexture})
+)
+scene.add(rockey)
+rockey.position.set(20, 0, 0);
+
+const moonTexture = new THREE.TextureLoader().load('./moon.jpg')
+const normalTexture = new THREE.TextureLoader().load('./normalmap.jpg')
+
+const moon = new THREE.Mesh(
+  new THREE.SphereGeometry(3,32,32),
+  new THREE.MeshStandardMaterial({
+    map: moonTexture,
+    normalTexture:normalTexture
+  })
+)
+scene.add(moon)
+
 // Animation loop
 function animate() {
   requestAnimationFrame(animate);
@@ -75,9 +101,11 @@ function animate() {
   torus.rotation.x += 0.01;
   torus.rotation.y += 0.01;
   torus.rotation.z += 0.01;
+  rockey.rotation.y += 0.01;
 
   controls.update();
   renderer.render(scene, camera);
 }
 
 animate();
+
