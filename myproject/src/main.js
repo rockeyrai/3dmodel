@@ -19,7 +19,7 @@ const renderer = new THREE.WebGLRenderer({
 });
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
-camera.position.setZ(50);
+camera.position.setZ(55);
 
 renderer.render(scene, camera);
 
@@ -94,18 +94,37 @@ const moon = new THREE.Mesh(
 )
 scene.add(moon)
 
+// Variables for smooth camera movement
+const targetPosition = new THREE.Vector3(camera.position.x, camera.position.y, camera.position.z);
+
+// Handle window scroll
+function moveCanvas() {
+  const view = document.body.getBoundingClientRect().top;
+
+  // Calculate target camera positions based on scroll
+  targetPosition.z = view * -0.05 + 55; // Adjust the offset for a better effect
+  targetPosition.x = view * -0.02;
+  targetPosition.y = view * -0.05;
+}
+
+document.body.onscroll = moveCanvas;
+
 // Animation loop
 function animate() {
   requestAnimationFrame(animate);
 
+  // Smoothly interpolate camera position
+  camera.position.lerp(targetPosition, 0.1); // Adjust the lerp factor (0.1) for more or less smoothing
+
   torus.rotation.x += 0.01;
   torus.rotation.y += 0.01;
   torus.rotation.z += 0.01;
+
   rockey.rotation.y += 0.01;
+  moon.rotation.y += 0.005;
 
   controls.update();
   renderer.render(scene, camera);
 }
 
 animate();
-
