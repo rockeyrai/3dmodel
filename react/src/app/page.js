@@ -1,12 +1,12 @@
-'use client'
-import React, { useEffect, useRef } from 'react';
+'use client';
+import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry';
 
-
 const ThreeScene = () => {
   const canvasRef = useRef(null);
+  const [currentVideo, setCurrentVideo] = useState('/hero-1.mp4');
 
   useEffect(() => {
     // Scene setup
@@ -23,7 +23,7 @@ const ThreeScene = () => {
     // Renderer setup
     const renderer = new THREE.WebGLRenderer({
       canvas: canvasRef.current,
-      antialias: true, // Enable anti-aliasing
+      antialias: true,
     });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -37,6 +37,10 @@ const ThreeScene = () => {
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
 
+    // Raycaster for click detection
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
     // Handle window resizing
     const handleResize = () => {
       camera.aspect = window.innerWidth / window.innerHeight;
@@ -49,53 +53,63 @@ const ThreeScene = () => {
     const spaceTexture = new THREE.TextureLoader().load('./space.jpg');
     scene.background = spaceTexture;
 
-    // Video Textures
-    const video1 = document.getElementById('video1');
-    const video2 = document.getElementById('video2');
-    const video3 = document.getElementById('video3');
-    const video4 = document.getElementById('video4');
-
-    // Start videos
-    video1.play();
-    video2.play();
-    video3.play();
-    video4.play();
+    // Video elements
+    const videos = [
+      '/hero-1.mp4',
+      '/hero-2.mp4',
+      '/hero-3.mp4',
+      '/hero-4.mp4',
+    ];
 
     // Create video textures
-    const videoTexture1 = new THREE.VideoTexture(video1);
-    videoTexture1.minFilter = THREE.LinearFilter;
-    videoTexture1.magFilter = THREE.LinearFilter;
-    videoTexture1.format = THREE.RGBAFormat;
+    const videoTextures = videos.map((src) => {
+      const videoElement = document.createElement('video');
+      videoElement.src = src;
+      videoElement.loop = true;
+      videoElement.muted = true;
+      videoElement.play();
 
-    const videoTexture2 = new THREE.VideoTexture(video2);
-    videoTexture2.minFilter = THREE.LinearFilter;
-    videoTexture2.magFilter = THREE.LinearFilter;
-    videoTexture2.format = THREE.RGBAFormat;
+      const texture = new THREE.VideoTexture(videoElement);
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      texture.format = THREE.RGBAFormat;
 
-    const videoTexture3 = new THREE.VideoTexture(video3);
-    videoTexture3.minFilter = THREE.LinearFilter;
-    videoTexture3.magFilter = THREE.LinearFilter;
-    videoTexture3.format = THREE.RGBAFormat;
-
-    const videoTexture4 = new THREE.VideoTexture(video4);
-    videoTexture4.minFilter = THREE.LinearFilter;
-    videoTexture4.magFilter = THREE.LinearFilter;
-    videoTexture4.format = THREE.RGBAFormat;
+      return texture;
+    });
 
     // Define materials for each face
     const materials = [
-      new THREE.MeshBasicMaterial({ map: videoTexture1 }), // Right
-      new THREE.MeshBasicMaterial({ map: videoTexture2 }), // Left
-      new THREE.MeshBasicMaterial({ map: videoTexture3 }), // Top
-      new THREE.MeshBasicMaterial({ map: videoTexture4 }), // Bottom
-      new THREE.MeshBasicMaterial({ map: videoTexture1 }), // Front
-      new THREE.MeshBasicMaterial({ map: videoTexture2 }), // Back
+      new THREE.MeshBasicMaterial({ map: videoTextures[0] }),
+      new THREE.MeshBasicMaterial({ map: videoTextures[1] }),
+      new THREE.MeshBasicMaterial({ map: videoTextures[2] }),
+      new THREE.MeshBasicMaterial({ map: videoTextures[3] }),
+      new THREE.MeshBasicMaterial({ map: videoTextures[0] }),
+      new THREE.MeshBasicMaterial({ map: videoTextures[1] }),
     ];
 
     // Rounded Cube
-    const geometry = new RoundedBoxGeometry(10, 10, 10, 1, 1); // Smooth edges
+    const geometry = new RoundedBoxGeometry(10, 10, 10, 1, 1);
     const cube = new THREE.Mesh(geometry, materials);
     scene.add(cube);
+
+    // Handle mouse click
+    const handleMouseClick = (event) => {
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+
+      const intersects = raycaster.intersectObject(cube);
+      if (intersects.length > 0) {
+        const faceIndex = intersects[0].face.materialIndex;
+        if (faceIndex !== undefined) {
+          setCurrentVideo(videos[faceIndex]);
+        }
+      }
+    };
+
+    window.addEventListener('click', handleMouseClick);
 
     // Animation loop
     const animate = () => {
@@ -110,16 +124,21 @@ const ThreeScene = () => {
     // Clean up on component unmount
     return () => {
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('click', handleMouseClick);
     };
   }, []);
 
   return (
     <div>
+      <video
+        loop
+        autoPlay
+        muted
+        playsInline
+        src={currentVideo}
+        style={{ position: 'fixed', bottom: '10px', left: '10px', width: '200px' }}
+      />
       <canvas ref={canvasRef} id="bg"></canvas>
-      <video id="video1" src="/hero-1.mp4" loop autoPlay muted playsinline style={{ display: 'none' }}></video>
-      <video id="video2" src="/hero-2.mp4" loop autoPlay muted playsinline style={{ display: 'none' }}></video>
-      <video id="video3" src="/hero-3.mp4" loop autoPlay muted playsinline style={{ display: 'none' }}></video>
-      <video id="video4" src="/hero-4.mp4" loop autoPlay muted playsinline style={{ display: 'none' }}></video>
     </div>
   );
 };
