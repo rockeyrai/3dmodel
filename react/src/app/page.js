@@ -129,7 +129,8 @@ const ThreeScene = () => {
   }, []);
 
   return (
-    <div>
+    <>
+        <div>
       <video
         loop
         autoPlay
@@ -140,6 +141,8 @@ const ThreeScene = () => {
       />
       <canvas ref={canvasRef} id="bg"></canvas>
     </div>
+    </>
+
   );
 };
 
