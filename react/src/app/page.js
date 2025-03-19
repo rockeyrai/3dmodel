@@ -86,7 +86,7 @@ const ThreeScene = () => {
       new THREE.MeshBasicMaterial({ map: videoTextures[0] }),
       new THREE.MeshBasicMaterial({ map: videoTextures[1] }),
     ];
-
+const test = new THREE.MeshStandardMaterial
     // Rounded Cube
     const geometry = new RoundedBoxGeometry(10, 10, 10, 1, 1);
     const cube = new THREE.Mesh(geometry, materials);
@@ -114,8 +114,8 @@ const ThreeScene = () => {
     // Animation loop
     const animate = () => {
       requestAnimationFrame(animate);
-      cube.rotation.y += 0.01; // Rotate for effect
-      controls.update();
+      cube.rotation.x += 0.01; // Rotate for effect
+      // controls.update();
       renderer.render(scene, camera);
     };
 
